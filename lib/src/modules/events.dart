@@ -1,76 +1,92 @@
 import '../client.dart';
 
-class VelixEvent {
-  final String id;
+/// Event guest — returned by both guest creation and guest lookup.
+/// Wire fields use camelCase (`eventId`, `categoryId`), unlike the
+/// snake_case DTOs of onboarding/checkin/me/lgpd.
+class Guest {
+  final String? id;
+  final String? eventId;
   final String name;
-  final String? description;
-  final String status;
-  final String? startAt;
-  final String? endAt;
+  final String email;
+  final String? status;
+  final String? categoryId;
 
-  const VelixEvent({
-    required this.id,
+  const Guest({
+    this.id,
+    this.eventId,
     required this.name,
-    this.description,
-    required this.status,
-    this.startAt,
-    this.endAt,
+    required this.email,
+    this.status,
+    this.categoryId,
   });
 
-  factory VelixEvent.fromJson(Map<String, dynamic> j) => VelixEvent(
-        id: j['id'] as String,
+  factory Guest.fromJson(Map<String, dynamic> j) => Guest(
+        id: j['id'] as String?,
+        eventId: j['eventId'] as String?,
         name: j['name'] as String,
-        description: j['description'] as String?,
-        status: j['status'] as String? ?? 'draft',
-        startAt: j['start_at'] as String?,
-        endAt: j['end_at'] as String?,
+        email: j['email'] as String,
+        status: j['status'] as String?,
+        categoryId: j['categoryId'] as String?,
       );
 
-  VelixEvent copyWith({
+  Guest copyWith({
     String? id,
+    String? eventId,
     String? name,
-    String? description,
+    String? email,
     String? status,
-    String? startAt,
-    String? endAt,
+    String? categoryId,
   }) =>
-      VelixEvent(
+      Guest(
         id: id ?? this.id,
+        eventId: eventId ?? this.eventId,
         name: name ?? this.name,
-        description: description ?? this.description,
+        email: email ?? this.email,
         status: status ?? this.status,
-        startAt: startAt ?? this.startAt,
-        endAt: endAt ?? this.endAt,
+        categoryId: categoryId ?? this.categoryId,
       );
 }
 
+/// Wraps the two Velix Events endpoints exposed under the API-key surface:
+/// `POST /v1/api/events/{id}/guests` (scope `events:write`) and
+/// `GET /v1/api/events/{id}/guests/{guestId}` (scope `events:read`).
+///
+/// No listing/creation/config endpoints for events themselves exist in the
+/// API-key surface (only guest create/read) — previous versions of this
+/// module exposed list()/get()/create()/updateConfig()/delete() against
+/// invented `/v1/events*` endpoints that do not exist; removed as part of
+/// task #593/#656 contract realignment.
 class EventsModule {
   final VelixClient _client;
   EventsModule(this._client);
 
-  Future<List<VelixEvent>> list({int page = 1, int limit = 20}) async {
-    final data = await _client.get('/v1/events?page=$page&limit=$limit');
-    final items = (data as Map<String, dynamic>)['items'] as List;
-    return items
-        .map((e) => VelixEvent.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<Guest> createGuest(
+    String eventId, {
+    required String name,
+    required String email,
+    String? cpf,
+    String? phone,
+    String? birthDate,
+    String? categoryId,
+    String? companionOf,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'email': email,
+      if (cpf != null) 'cpf': cpf,
+      if (phone != null) 'phone': phone,
+      if (birthDate != null) 'birthDate': birthDate,
+      if (categoryId != null) 'categoryId': categoryId,
+      if (companionOf != null) 'companionOf': companionOf,
+    };
+    final data =
+        await _client.post('/v1/api/events/$eventId/guests', body);
+    return Guest.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<VelixEvent> get(String id) async {
-    final data = await _client.get('/v1/events/$id');
-    return VelixEvent.fromJson(data as Map<String, dynamic>);
+  Future<Guest> getGuest(String eventId, String guestId) async {
+    final data =
+        await _client.get('/v1/api/events/$eventId/guests/$guestId');
+    return Guest.fromJson(data as Map<String, dynamic>);
   }
-
-  Future<VelixEvent> create(Map<String, dynamic> body) async {
-    final data = await _client.post('/v1/events', body);
-    return VelixEvent.fromJson(data as Map<String, dynamic>);
-  }
-
-  Future<VelixEvent> updateConfig(
-      String id, Map<String, dynamic> config) async {
-    final data = await _client.patch('/v1/events/$id/config', config);
-    return VelixEvent.fromJson(data as Map<String, dynamic>);
-  }
-
-  Future<void> delete(String id) => _client.delete('/v1/events/$id');
 }

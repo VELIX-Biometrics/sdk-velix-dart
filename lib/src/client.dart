@@ -4,28 +4,36 @@ import 'config.dart';
 import 'error.dart';
 import 'retry.dart';
 import 'modules/checkin.dart';
-import 'modules/persons.dart';
+import 'modules/onboarding.dart';
+import 'modules/lgpd.dart';
+import 'modules/me.dart';
 import 'modules/events.dart';
-import 'modules/tenants.dart';
 
 class VelixClient {
   final VelixConfig config;
   late final CheckinModule checkin;
-  late final PersonsModule persons;
+  late final OnboardingModule onboarding;
+  late final LgpdModule lgpd;
+  late final MeModule me;
   late final EventsModule events;
-  late final TenantsModule tenants;
 
   VelixClient(this.config) {
     checkin = CheckinModule(this);
-    persons = PersonsModule(this);
+    onboarding = OnboardingModule(this);
+    lgpd = LgpdModule(this);
+    me = MeModule(this);
     events = EventsModule(this);
-    tenants = TenantsModule(this);
   }
 
+  // Auth: `x-api-key: vlx_<hex>` is the official header for all SDKs (see
+  // ApiKeyAuthGuard.extractKey()). `Authorization: Bearer vlx_<hex>` is
+  // accepted as an alternative by the same guard, but is NOT a session JWT
+  // — this SDK standardizes on x-api-key and never sends any other auth
+  // header.
   Map<String, String> get _headers => {
         'x-api-key': config.apiKey,
         'Content-Type': 'application/json',
-        'User-Agent': 'velix-dart-sdk/1.0.0',
+        'User-Agent': 'velix-dart-sdk/0.1.0-alpha.1',
       };
 
   Uri _uri(String path) => Uri.parse('${config.apiUrl}$path');
