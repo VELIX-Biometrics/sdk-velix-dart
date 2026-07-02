@@ -87,7 +87,18 @@ class VelixClient {
 
   dynamic _handleResponse(http.Response res) {
     if (res.statusCode == 401) throw const AuthException('Unauthorized');
+    if (res.statusCode == 403) {
+      throw const AuthException('Forbidden', statusCode: 403);
+    }
     if (res.statusCode == 404) throw const NotFoundException('Not found');
+    if (res.statusCode == 422) {
+      final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
+      throw BiometricException(
+        body['message'] ?? 'Biometric validation failed',
+        code: body['code'],
+        statusCode: 422,
+      );
+    }
     if (res.statusCode == 429) throw const RateLimitException();
     if (res.statusCode >= 400) {
       final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};

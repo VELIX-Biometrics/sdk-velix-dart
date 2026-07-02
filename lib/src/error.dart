@@ -9,7 +9,8 @@ class VelixException implements Exception {
 }
 
 class AuthException extends VelixException {
-  const AuthException(super.message) : super(statusCode: 401);
+  const AuthException(super.message, {int statusCode = 401})
+      : super(statusCode: statusCode);
 }
 
 class BiometricException extends VelixException {
