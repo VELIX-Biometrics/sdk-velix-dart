@@ -1,0 +1,16 @@
+name: velix_sdk
+description: SDK oficial VELIX para Dart/Flutter — controle de acesso biométrico.
+version: 0.1.0-alpha.1
+homepage: https://velixbiometrics.com
+repository: https://github.com/velix/velix-sdk-dart
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  http: ^1.2.0
+
+dev_dependencies:
+  test: ^1.24.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.0
