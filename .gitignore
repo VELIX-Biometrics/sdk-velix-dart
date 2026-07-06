@@ -2,3 +2,6 @@
 .packages
 pubspec.lock
 build/
+
+# Claude Code (config local / worktrees de agente — nunca versionar)
+.claude/
