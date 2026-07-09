@@ -76,6 +76,25 @@ flutter run --dart-define=VELIX_API_URL=https://... --dart-define=VELIX_API_KEY=
 Every response comes wrapped in `{"data": ...}` on the wire — the SDK
 unwraps the envelope internally and only ever exposes the unwrapped payload.
 
+| `client.contexts` | `/v1/contexts/*` | BearerAuth | `create/get/list/update/remove`, `authorize`, `listAuthorizationDecisions`, `createLinkRequest` |
+| `client.memberships` | `/v1/contexts/:id/memberships`, `/v1/identities/:id/memberships`, `/v1/memberships/*` | BearerAuth | `create`, `listByContext`, `listByIdentity`, `updateStatus`, `addRoles`, `removeRoles` |
+| `client.contextRoles` | `/v1/context-roles*` | BearerAuth | `create`, `list`, `linkPermissions` |
+| `client.contextPermissions` | `/v1/context-permissions` | BearerAuth | `create`, `list` |
+| `client.authorizationTokens` | `POST /v1/authorization-tokens/validate` | BearerAuth | `validate` |
+
+## Identity Context
+
+```dart
+final context = await client.contexts.create({'name': 'Matriz SP', 'contextType': 'location'});
+final decision = await client.contexts.authorize(context['id'], {'identityId': identityId, 'permission': 'access:enter'});
+final membership = await client.memberships.create(context['id'], {'identityId': identityId, 'roleIds': [roleId]});
+// context exit (definitive, no grace period)
+await client.memberships.updateStatus(membership['id'], 'revoked');
+// cross-tenant link — stays PENDING until the person consents via magic link
+await client.contexts.createLinkRequest(context['id'], {'identityId': identityId});
+await client.authorizationTokens.validate('vat_...');
+```
+
 ## Onboarding Module
 
 ```dart

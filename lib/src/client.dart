@@ -8,6 +8,7 @@ import 'modules/onboarding.dart';
 import 'modules/lgpd.dart';
 import 'modules/me.dart';
 import 'modules/events.dart';
+import 'modules/context.dart';
 
 class VelixClient {
   final VelixConfig config;
@@ -16,6 +17,11 @@ class VelixClient {
   late final LgpdModule lgpd;
   late final MeModule me;
   late final EventsModule events;
+  late final ContextModule contexts;
+  late final ContextMembershipModule memberships;
+  late final ContextRoleModule contextRoles;
+  late final ContextPermissionModule contextPermissions;
+  late final AuthorizationTokenModule authorizationTokens;
 
   VelixClient(this.config) {
     checkin = CheckinModule(this);
@@ -23,6 +29,11 @@ class VelixClient {
     lgpd = LgpdModule(this);
     me = MeModule(this);
     events = EventsModule(this);
+    contexts = ContextModule(this);
+    memberships = ContextMembershipModule(this);
+    contextRoles = ContextRoleModule(this);
+    contextPermissions = ContextPermissionModule(this);
+    authorizationTokens = AuthorizationTokenModule(this);
   }
 
   // Auth: `x-api-key: vlx_<hex>` is the official header for all SDKs (see
